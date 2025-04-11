@@ -14,25 +14,26 @@ print("Spouštění v0.1.1")
 # === Config ===
 # Input Directory
 BASE_DIR = Path(__file__).parent
-INPUT_FILE = BASE_DIR / "cards.csv"
-# Output Directory
+# Working Directory
 config_path = BASE_DIR / "config.ini"
 config = configparser.ConfigParser()
 print(config_path)
 print(config_path.exists())
 if config_path.exists():
     config.read(config_path)
-    output_path = config["DEFAULT"].get("output_dir", BASE_DIR / "out")
-    print(output_path)
+    working_path = config["DEFAULT"].get("working_dir", BASE_DIR / "out")
+    print(working_path)
 else:
-    #output_path = BASE_DIR / "out"
-    raise NameError('Chyba složky!')
-OUT_DIR = Path(output_path)
-OUT_DIR.mkdir(parents=True, exist_ok=True)
+    #working_path = BASE_DIR / "out"
+    raise NameError('Chyba pracovní složky!')
+WORK_DIR = Path(working_path)
+WORK_DIR.mkdir(parents=True, exist_ok=True)
+# Input Files
+INPUT_FILE = WORK_DIR / "cards.csv"
 # Output Files
 timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
-OUTPUT_FILE = OUT_DIR / f"results_{timestamp}.csv"
-OUTPUT_FILE_best = OUT_DIR / f"results_best_value_pick_{timestamp}.csv"
+OUTPUT_FILE = WORK_DIR / f"out/results_{timestamp}.csv"
+OUTPUT_FILE_best = WORK_DIR / f"out/results_best_value_pick_{timestamp}.csv"
 # Driver path
 driver_path = BASE_DIR / "driver/msedgedriver.exe"  # Place driver in the same directory or update path
 
@@ -84,6 +85,14 @@ def find_cards_on_page(card_name):
     return results
 
 # === Load Cards ===
+if not os.path.exists(INPUT_FILE):
+    try:
+        shutil.copyfile(BASE_DIR / "cards.csv", WORK_DIR / "cards.csv")
+        print(f'Copied file to {WORK_DIR / "cards.csv"}')
+    except Exception as e:
+        print(f'Failed to copy file: {e}')
+else:
+    print(f'File already exists at {WORK_DIR / "cards.csv"}, not copying.')
 with open(INPUT_FILE, newline='', encoding='utf-8') as csvfile:
     card_list = [line.strip() for line in csvfile if line.strip()]
 print(f"Cards to search: {card_list}")

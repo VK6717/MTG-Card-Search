@@ -26,14 +26,14 @@ Filename: "{app}\mtg_search.exe"; Description: "Spustit MTG Search Tool"; Flags:
 
 [Code]
 var
-  OutputDirPage: TInputDirWizardPage;
+  WorkingDirPage: TInputDirWizardPage;
 
 procedure InitializeWizard;
 begin
-  OutputDirPage := CreateInputDirPage(wpSelectDir,
-    'Výstupní složka', 'Zadejte složku pro ukládání výsledků.',
-    'Zvolte nebo vytvořte složku, kam bude program ukládat CSV výstupy.', False, '');
-  OutputDirPage.Add('');
+  WorkingDirPage := CreateInputDirPage(wpSelectDir,
+    'Výstupní složka', 'Zadejte složku pro definici karet a ukládání výsledků.',
+    'Zvolte nebo vytvořte pracovní složku programu. V této složce budete definovat karty k vyhledání a v této složce budou uloženy výsledky vyhledávání', False, '');
+  WorkingDirPage.Add('');
 end;
 
 procedure CurStepChanged(CurStep: TSetupStep);
@@ -43,6 +43,6 @@ begin
   if CurStep = ssPostInstall then
   begin
     IniPath := ExpandConstant('{app}\config.ini');
-    SaveStringToFile(IniPath, '[DEFAULT]\noutput_dir=' + OutputDirPage.Values[0], False);
+    SaveStringToFile(IniPath, '[DEFAULT]' + #13#10 + 'working_dir=' + WorkingDirPage.Values[0], False);
   end;
 end;
