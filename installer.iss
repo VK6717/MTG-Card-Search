@@ -1,7 +1,7 @@
 [Setup]
 AppName=MTG Search Tool
-AppVersion=1.0
-DefaultDirName={pf}\MTG Search Tool
+AppVersion=0.1.1
+DefaultDirName={commonpf}\MTG Search Tool
 DefaultGroupName=MTG Search Tool
 OutputDir=out
 OutputBaseFilename=mtg_search_setup
@@ -15,7 +15,7 @@ VersionInfoCompany=Vlada
 [Files]
 Source: "dist\mtg_search.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "cards.csv"; DestDir: "{app}"; Flags: ignoreversion
-Source: "driver\msedgedriver.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "driver\msedgedriver.exe"; DestDir: "{app}\driver"; Flags: ignoreversion
 
 [Icons]
 Name: "{group}\MTG Search Tool"; Filename: "{app}\mtg_search.exe"

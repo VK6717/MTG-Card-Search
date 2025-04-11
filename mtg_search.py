@@ -9,6 +9,8 @@ from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 
 
+# === Startup ===
+print("Spouštění v0.1.1")
 # === Config ===
 # Input Directory
 BASE_DIR = Path(__file__).parent
@@ -16,11 +18,15 @@ INPUT_FILE = BASE_DIR / "cards.csv"
 # Output Directory
 config_path = BASE_DIR / "config.ini"
 config = configparser.ConfigParser()
+print(config_path)
+print(config_path.exists())
 if config_path.exists():
     config.read(config_path)
     output_path = config["DEFAULT"].get("output_dir", BASE_DIR / "out")
+    print(output_path)
 else:
-    output_path = BASE_DIR / "out"
+    #output_path = BASE_DIR / "out"
+    raise NameError('Chyba složky!')
 OUT_DIR = Path(output_path)
 OUT_DIR.mkdir(parents=True, exist_ok=True)
 # Output Files
