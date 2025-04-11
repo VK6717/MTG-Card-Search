@@ -2,19 +2,32 @@ import re
 import os
 import csv
 import time
+import configparser
 from datetime import datetime
 from pathlib import Path
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 
+
 # === Config ===
+# Input Directory
 BASE_DIR = Path(__file__).parent
 INPUT_FILE = BASE_DIR / "cards.csv"
-OUT_DIR = BASE_DIR / "out"
-OUT_DIR.mkdir(exist_ok=True)
+# Output Directory
+config_path = BASE_DIR / "config.ini"
+config = configparser.ConfigParser()
+if config_path.exists():
+    config.read(config_path)
+    output_path = config["DEFAULT"].get("output_dir", BASE_DIR / "out")
+else:
+    output_path = BASE_DIR / "out"
+OUT_DIR = Path(output_path)
+OUT_DIR.mkdir(parents=True, exist_ok=True)
+# Output Files
 timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
 OUTPUT_FILE = OUT_DIR / f"results_{timestamp}.csv"
 OUTPUT_FILE_best = OUT_DIR / f"results_best_value_pick_{timestamp}.csv"
+# Driver path
 driver_path = BASE_DIR / "driver/msedgedriver.exe"  # Place driver in the same directory or update path
 
 # === Initialize Driver ===
