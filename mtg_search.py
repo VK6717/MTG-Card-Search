@@ -3,11 +3,11 @@ import os
 import csv
 import time
 import configparser
+import shutil
 from datetime import datetime
 from pathlib import Path
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
-
 
 # === Startup ===
 print("Spouštění v0.1.1")
@@ -24,30 +24,33 @@ if config_path.exists():
     working_path = config["DEFAULT"].get("working_dir", BASE_DIR / "out")
     print(working_path)
 else:
-    #working_path = BASE_DIR / "out"
+    # working_path = BASE_DIR / "out"
     raise NameError('Chyba pracovní složky!')
 WORK_DIR = Path(working_path)
 WORK_DIR.mkdir(parents=True, exist_ok=True)
+OUTPUT_DIR = WORK_DIR / "out"
+OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 # Input Files
 INPUT_FILE = WORK_DIR / "cards.csv"
 # Output Files
 timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
-OUTPUT_FILE = WORK_DIR / f"out/results_{timestamp}.csv"
-OUTPUT_FILE_best = WORK_DIR / f"out/results_best_value_pick_{timestamp}.csv"
+OUTPUT_FILE = OUTPUT_DIR / f"results_{timestamp}.csv"
+OUTPUT_FILE_best = OUTPUT_DIR / f"results_best_value_pick_{timestamp}.csv"
 # Driver path
 driver_path = BASE_DIR / "driver/msedgedriver.exe"  # Place driver in the same directory or update path
 
 # === Initialize Driver ===
 driver = webdriver.Edge(executable_path=str(driver_path))
 
+
 # === Helper Functions ===
 def find_number_of_pages():
     try:
         search_response = driver.find_element_by_xpath("//span[@class='kusovkytext']")
         links = search_response.find_elements_by_xpath("./a")
-        match_total = re.search(r"Nalezeno\\s+(\\d+)\\s+kusov", search_response.text)
+        match_total = re.search(r"Nalezeno\s+(\d+)\s+kusov", search_response.text)
         total = int(match_total.group(1)) if match_total else None
-        trailing_numbers = list(map(int, re.findall(r"\\b\\d+\\b", search_response.text)))
+        trailing_numbers = list(map(int, re.findall(r"\b\d+\b", search_response.text)))
         max_page = max(trailing_numbers[1:]) if trailing_numbers else 1
         print(f"Nalezeno karet: {total}")
         print(f"Celkem stranek: {max_page}")
@@ -58,12 +61,13 @@ def find_number_of_pages():
         print("Celkem stranek: 1")
     return max_page, links
 
+
 def find_cards_on_page(card_name):
     tables = driver.find_elements_by_xpath("//table[@class='kusovkytext']")
     print(f"Nalezeno tabulek: {len(tables)}")
     table = tables[-1] if len(tables) > 1 else tables[0]
     rows = table.find_elements_by_tag_name('tr')
-    cards = [rows[i:i+3] for i in range(0, len(rows), 3)]
+    cards = [rows[i:i + 3] for i in range(0, len(rows), 3)]
     print(f"Nalezeno karet na strance: {len(cards)}")
 
     results = []
@@ -83,6 +87,7 @@ def find_cards_on_page(card_name):
         except Exception as e:
             print(f"Skipping card due to error: {e}")
     return results
+
 
 # === Load Cards ===
 if not os.path.exists(INPUT_FILE):
@@ -111,14 +116,17 @@ for card in card_list:
 
     max_page, links = find_number_of_pages()
     for i in range(max_page):
+        max_page, links = find_number_of_pages() # this is needed to prevent stale element not found error
         all_cards.extend(find_cards_on_page(card))
         if i < max_page - 1:
             links[i].click()
             time.sleep(0.3)
+driver.quit()
 
 # === Write All Results ===
 with open(OUTPUT_FILE, mode='w', newline='', encoding='utf-8') as f:
-    writer = csv.DictWriter(f, fieldnames=["search_name", "card_name", "stock_amount", "price", "search_url"], delimiter=";")
+    writer = csv.DictWriter(f, fieldnames=["search_name", "card_name", "stock_amount", "price", "search_url"],
+                            delimiter=";")
     writer.writeheader()
     writer.writerows(all_cards)
 
@@ -136,10 +144,10 @@ for card in all_cards:
         continue
 
 with open(OUTPUT_FILE_best, mode='w', newline='', encoding='utf-8') as f:
-    writer = csv.DictWriter(f, fieldnames=["search_name", "card_name", "stock_amount", "price", "search_url"], delimiter=";")
+    writer = csv.DictWriter(f, fieldnames=["search_name", "card_name", "stock_amount", "price", "search_url"],
+                            delimiter=";")
     writer.writeheader()
     writer.writerows(best_cards.values())
 
 # === Done ===
-driver.quit()
 print("✅ Search completed. Results saved.")
